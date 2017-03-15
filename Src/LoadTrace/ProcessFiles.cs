@@ -17,7 +17,7 @@ namespace LoadTrace
             WriteNumberOfFiles(traceWildcard);
             // Process all the files in the wildcard parameter
             string wildcard = Path.GetFileName(traceWildcard);
-            var files = Directory.EnumerateFiles(Path.GetDirectoryName(traceWildcard), Path.GetFileName(traceWildcard));
+            var files = Directory.EnumerateFiles(Path.GetDirectoryName(traceWildcard), Path.GetFileName(traceWildcard)).OrderBy(f => f);
 
             // Need a way to handle files where we only need read-only
             // if we are only importing and not moving
