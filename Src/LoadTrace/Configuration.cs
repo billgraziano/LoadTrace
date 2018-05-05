@@ -56,6 +56,15 @@ namespace LoadTrace
             }
         }
 
+        [ConfigurationProperty("saveLoginEvents", DefaultValue = false)]
+        public Boolean SaveLoginEvents
+        {
+            get
+            {
+                return (Boolean)this["saveLoginEvents"];
+            }
+        }
+
         [ConfigurationProperty("server", IsRequired=true)]
         public string Server
         {

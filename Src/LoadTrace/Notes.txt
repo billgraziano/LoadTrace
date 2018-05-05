@@ -1,0 +1,55 @@
+﻿1. Add a new parameter to the .config file
+
+  <LoadTrace server="D30\SQL2016" 
+             database="TraceRepository" 
+             verbose="true" 
+             reprocess="true" 
+             resetPermissions="true"
+             workDirectory="D:\Projects\LoadTrace"   
+             archiveDirectory=""
+             cleanUpServerName="true"
+             saveLoginEvents = "true">
+
+
+2. Create new database objects 
+
+
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE TABLE [dbo].[LoginEvent](
+	[LoginEventID] [bigint] IDENTITY(1,1) NOT NULL,
+	[StartTime] [datetime] NOT NULL,
+	[LoginID] [int] NOT NULL,
+	[ApplicationID] [int] NOT NULL,
+	[HostID] [int] NOT NULL,
+	[ServerName] [varchar](128) NOT NULL,
+ CONSTRAINT [PK_LoginEvent] PRIMARY KEY CLUSTERED 
+(
+	[LoginEventID] ASC
+)WITH ( DATA_COMPRESSION = PAGE,
+		PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, 
+		ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+) ON [PRIMARY]
+
+GO
+
+
+
+
+CREATE VIEW dbo.LoginEvent_Logstash_View
+AS
+  SELECT 
+		[LoginEventID]
+      ,[StartTime] AS [Timestamp] 
+	  ,L.LoginName as server_principal_name
+      ,A.ApplicationName as client_app_name
+      ,H.HostName as client_hostname
+      ,[ServerName] as server_instance_name
+  FROM [TraceRepository].[dbo].[LoginEvent] LE 
+  JOIN TraceRepository.dbo.LoginDim L ON L.LoginID = LE.LoginID
+  JOIN TraceRepository.dbo.ApplicationDim A ON A.ApplicationID = LE.ApplicationID
+  JOIN TraceRepository.dbo.HostDim H ON H.HostID = LE.HostID

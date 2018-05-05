@@ -61,12 +61,12 @@ namespace LoadTrace
                         break;
 
                     case "Audit Login":
-                        ProcessLogin(ref t, ref loginSummary);
+                        ProcessLogin(appConfigServerName, ref t, ref loginSummary);
                         break;
 
-                    case "ExistingConnection":
-                        ProcessLogin(ref t, ref loginSummary);
-                        break;
+                    //case "ExistingConnection":
+                    //    ProcessLogin(appConfigServerName, ref t, ref loginSummary);
+                    //    break;
 
                     default:
                         // Console.WriteLine("Unknown: {0}", eventClass);
@@ -173,7 +173,7 @@ VALUES (@TraceFileID, @HostID, @ApplicationID, @LoginID, @FirstLogin, @LastLogin
             // write the trace file info to the table
             
         }
-        private static void ProcessLogin(ref TraceFile traceFile, ref Dictionary<LoginKey, LoginDetails> loginSummary)
+        private static void ProcessLogin(string serverName, ref TraceFile traceFile, ref Dictionary<LoginKey, LoginDetails> loginSummary)
         {
 
             DateTime startTime = new DateTime(1900,1,1);
@@ -189,10 +189,15 @@ VALUES (@TraceFileID, @HostID, @ApplicationID, @LoginID, @FirstLogin, @LastLogin
 
             }
 
+            int hostID, appID, loginID;
+            hostID = HostLookup.GetIndex(ref traceFile, CONNECTION_STRING); 
+            appID = ApplicationLookup.GetIndex(ref traceFile, CONNECTION_STRING);
+            loginID = LoginLookup.GetIndex(ref traceFile, CONNECTION_STRING); 
+
             LoginKey lk = new LoginKey();
-            lk.HostID = HostLookup.GetIndex(ref traceFile, CONNECTION_STRING);
-            lk.ApplicationID = ApplicationLookup.GetIndex(ref traceFile, CONNECTION_STRING);
-            lk.LoginID = LoginLookup.GetIndex(ref traceFile, CONNECTION_STRING);
+            lk.HostID = hostID;
+            lk.ApplicationID = appID;
+            lk.LoginID = loginID;
 
             LoginDetails d;
             
@@ -211,7 +216,31 @@ VALUES (@TraceFileID, @HostID, @ApplicationID, @LoginID, @FirstLogin, @LastLogin
                 d.LoginCount = 1;
                 loginSummary.Add(lk, d);
             }
-              
+
+            // Write to detail repository
+            if (SAVE_LOGIN_EVENTS)
+            {
+                using (SqlConnection conn = new SqlConnection(CONNECTION_STRING))
+                {
+                    using (SqlCommand cmd = new SqlCommand(@"INSERT dbo.LoginEvent (StartTime, HostID, ApplicationID, LoginID, ServerName) 
+                                                    VALUES (@StartTime, @HostID, @ApplicationID, @LoginID, @ServerName)", conn))
+                    {
+                        conn.Open();
+
+                        cmd.Parameters.AddWithValue("StartTime", startTime);
+                        cmd.Parameters.AddWithValue("HostID", hostID);
+                        cmd.Parameters.AddWithValue("ApplicationID", appID);
+                        cmd.Parameters.AddWithValue("LoginID", loginID);
+                        cmd.Parameters.AddWithValue("ServerName", serverName);
+                        cmd.ExecuteNonQuery();
+                        cmd.Parameters.Clear();
+
+                        conn.Close();
+                    }
+
+                }
+            }
+
 
         }
 

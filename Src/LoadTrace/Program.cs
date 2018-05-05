@@ -36,6 +36,7 @@ namespace LoadTrace
 		public static bool REPROCESS = false;
 		public static bool RESET_PERMISSIONS = false;
         public static bool CLEAN_UP_SERVER_NAME = false;
+        public static bool SAVE_LOGIN_EVENTS = false;
 
 		public static string CONNECTION_STRING = "";
 
@@ -120,7 +121,7 @@ namespace LoadTrace
 			Console.WriteLine("Press any key to continue....");
 			Console.ReadLine();
 #endif
-            return 0;
+            return 0 ;
 		}
 
 		static bool ParseParameters (string[] args)
@@ -135,6 +136,7 @@ namespace LoadTrace
 			WORK_DIR = LoadTraceConfig.AppConfigFile.WorkDirectory;
 			ARCHIVE_DIR = LoadTraceConfig.AppConfigFile.ArchiveDirectory;
             CLEAN_UP_SERVER_NAME = LoadTraceConfig.AppConfigFile.CleanUpServerName;
+            SAVE_LOGIN_EVENTS = LoadTraceConfig.AppConfigFile.SaveLoginEvents;
 
             // command-line settings would override the app.config settings
 			var p = new OptionSet() {
